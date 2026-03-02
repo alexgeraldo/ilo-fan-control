@@ -161,7 +161,18 @@ def get_temp_readings() -> list:
     mem_temp = round(sum(mem_values) / len(mem_values), 1) if mem_values else None
 
     # Build temperature readings list
-    temp_readings = [{"verbose-name":temp["verbose-name"], "value":int(temps_state[temp["name"]]), "safe-max": temp["safe-max"]} for temp in temps_config if temp["enabled"] and "DIMM" not in temp["name"]]
+    temp_readings = []
+    for temp in temps_config:
+        if temp["enabled"] and "DIMM" not in temp["name"]:
+            if temp["name"] in temps_state:
+                value = temps_state.get(temp["name"])
+                temp_readings.append({
+                    "verbose-name": temp["verbose-name"],
+                    "value": int(value),
+                    "safe-max": temp["safe-max"]
+                })
+        else:
+            logging.debug(f"Skipping sensor '{temp['name']}' in temperature reading.")
     
     # Add aggregated memory temperature if available
     if mem_temp is not None:
